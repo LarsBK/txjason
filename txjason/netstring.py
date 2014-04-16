@@ -82,6 +82,11 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
         self.closing = False
         d.callback(None)
 
+    def clientConnectionFailed(self, connector, reason):
+        self.connected = False
+        self.closing = False
+        self.reactor.connectTCP(self.host, self.port, self)
+
     @defer.inlineCallbacks
     def callRemote(self, __method, *args, **kwargs):
         payload, d = self.client.getRequest(__method, *args, **kwargs)
