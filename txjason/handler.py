@@ -9,14 +9,15 @@ class exportRPC(object):
     Optionally, provde an argument to indicate the name to export as:
     @exportRPC("foo").
     """
-    def __init__(self, name=None):
-        self.name=name
+    def __init__(self, name=None, types=None, required=None):
+		self.name=name
+		self.types = types
+		self.required = required
 
     def __call__(self, f):
-        if self.name:
-            f.export_rpc = self.name
-        else:
-            f.export_rpc = f.__name__
+        if not self.name:
+			self.name = f.__name__
+        f.export_rpc = self
         return f
 
 
@@ -53,7 +54,9 @@ class Handler(object):
         for n, m in inspect.getmembers(self, inspect.ismethod):
             if hasattr(m, 'export_rpc'):
                 try:
-                    name = seperator.join(namespace + m.export_rpc)
+                    name = seperator.join(namespace + m.export_rpc.name)
                 except TypeError:
-                    name = seperator.join(namespace + [m.export_rpc])
-                service.add(m, name)
+                    name = seperator.join(namespace + [m.export_rpc.name])
+                service.add(m, name, types=m.export_rpc.types, required=m.export_rpc.required)
+
+

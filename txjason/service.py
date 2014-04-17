@@ -533,12 +533,11 @@ class JSONRPCService(object):
             if 'required' in self.method_data[method]:
                 for key in self.method_data[method]['required']:
                     if key not in params:
-                        raise InvalidParamsError('missing key: %s' % key)
+                        raise InvalidParamsError('missing param: %s' % key)
 
             for key in params.keys():
-                if key not in self.method_data[method]['types'] or \
-                    not (isinstance(params[key],
-                                    self.method_data[method]['types'][key])
+                if key in self.method_data[method]['types'] and not (
+						isinstance(params[key], self.method_data[method]['types'][key])
                          or params[key] is None):
                     raise InvalidParamsError(
                         'arg "{}" is the wrong type'.format(key))
