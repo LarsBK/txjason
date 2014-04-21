@@ -1,13 +1,13 @@
 import json
 from twisted.internet import defer, task
-from twisted.trial import unittest
 from txjason import client
 
+from common import TXJasonTestCase
 
 clock = task.Clock()
 
 
-class ClientTestCase(unittest.TestCase):
+class ClientTestCase(TXJasonTestCase):
     def setUp(self):
         self.client = client.JSONRPCClient(reactor=clock)
 
@@ -19,6 +19,7 @@ class ClientTestCase(unittest.TestCase):
 
     def test_timeout(self):
         called = []
+
         def eb(r):
             called.append(r.value)
         payload, d = self.client.getRequest('foo')
@@ -28,8 +29,18 @@ class ClientTestCase(unittest.TestCase):
         clock.advance(1)
         self.assertIsInstance(called[0], defer.CancelledError)
 
+    def test_timeout_argument(self):
+        called = []
+        payload, d = self.client.getRequest('foo', timeout=4)
+        d.addErrback(called.append)
+        clock.advance(3)
+        self.assertFalse(called)
+        clock.advance(1)
+        self.assertIsInstance(called[0].value, defer.CancelledError)
+
     def test_response(self):
         called = []
+
         def cb(r):
             called.append(r)
         payload, d = self.client.getRequest('foo')
@@ -40,6 +51,7 @@ class ClientTestCase(unittest.TestCase):
 
     def test_error(self):
         called = []
+
         def eb(r):
             called.append(r.value)
         payload, d = self.client.getRequest('foo')
@@ -48,8 +60,8 @@ class ClientTestCase(unittest.TestCase):
         self.client.handleResponse(json.dumps(response))
         self.assertIsInstance(called[0], client.JSONRPCClientError)
 
-    def test_args_and_kwargs(self):
-        self.assertRaises(client.JSONRPCClientError, self.client.getRequest, 'foo', 1, bar='bar')
+    def test_unrecognized_kwargs(self):
+        self.assertRaises(TypeError, self.client.getRequest, bar='bar')
 
     def test_positional_params(self):
         payload, d = self.client.getRequest('foo', 1, 2, 3)
@@ -57,7 +69,7 @@ class ClientTestCase(unittest.TestCase):
         self.checkPayload(payload, expected, d)
 
     def test_named_params(self):
-        payload, d = self.client.getRequest('foo', a=1, b=2)
+        payload, d = self.client.getRequest('foo', dict(a=1, b=2))
         expected = {'id': 1, 'jsonrpc': '2.0', 'method': 'foo', 'params': {'a': 1, 'b': 2}}
         self.checkPayload(payload, expected, d)
 
