@@ -368,4 +368,4 @@ class ClientTestCase(TXJasonTestCase):
         self.successResultOf(self.factory.connect())
         self.endpoint.disconnect(FakeDisconnectedError())
         self.failureResultOf(d, FakeDisconnectedError)
-        self.assertEqual(len(self.flushLoggedErrors(FakeDisconnectedError)), 2)
+        self.assertEqual(len(self.flushLoggedErrors(FakeDisconnectedError)), 3)

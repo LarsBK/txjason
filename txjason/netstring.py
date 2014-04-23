@@ -26,7 +26,13 @@ class JSONRPCClientProtocol(NetstringReceiver):
             log.msg('Disconencted from server because of a broken peer.')
         else:
             log.msg('Lost server connection.')
+
         self.deferred.errback(reason)
+
+    def disconnect(self):
+        self.transport.loseConnection()
+        return self.deferred
+
 
 
 class JSONRPCServerProtocol(NetstringReceiver):
@@ -55,6 +61,7 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
         self._connecting = False
         self._connectionDeferred = None
         self.reactor = reactor
+        self.disconnecting = False
 
     def buildProtocol(self, addr):
         return JSONRPCClientProtocol(self)
@@ -80,19 +87,27 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
         self._connecting = False
         if not isinstance(result, failure.Failure):
             self._proto = result
-            self._proto.deferred.addErrback(self._lostProtocol)
+            self._proto.deferred.addBoth(self._lostProtocol)
         waiting, self._waiting = self._waiting, []
         for d in waiting:
             d.callback(result)
         return result
 
     def _lostProtocol(self, reason):
-        log.err(reason, '%r disconnected' % (self,))
+        if not self.disconnecting:
+            log.err(reason, '%r disconnected' % (self,))
         deferreds, self._notifyOnDisconnect = self._notifyOnDisconnect, []
         for d in deferreds:
             d.errback(reason)
         self._proto = None
         self.client.cancelRequests()
+        o = self.disconnecting
+        self.disconnecting = False
+        if o:
+            return None
+        else:
+            return reason
+
 
     def callRemote(self, __method, *args, **kwargs):
         connectionDeferred = self._getConnection()
@@ -120,10 +135,11 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
         return self._getConnection().addCallback(lambda ign: None)
 
     def disconnect(self):
+        self.disconnecting = False
         if self._proto:
-            self._proto.transport.abortConnection()
+            return self._proto.disconnect()
         elif self._connecting:
-            self._connectionDeferred.cancel()
+            return self._connectionDeferred.cancel()
 
     def notifyDisconnect(self):
         d = defer.Deferred()
