@@ -114,7 +114,6 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
         self.closing = False
         self.reactor.connectTCP(self.host, self.port, self)
 
-    @defer.inlineCallbacks
     def callRemote(self, __method, *args, **kwargs):
         connectionDeferred = self._getConnection()
 
@@ -141,7 +140,7 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
         return self._getConnection().addCallback(lambda ign: None)
 
     def disconnect(self):
-        self.disconnecting = False
+        self.disconnecting = True
         if self._proto:
             return self._proto.disconnect()
         elif self._connecting:

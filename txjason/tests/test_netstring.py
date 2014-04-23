@@ -268,7 +268,7 @@ class ClientTestCase(TXJasonTestCase):
         self.assertIsNot(self.endpoint.transport, None)
         self.factory.disconnect()
         self.assertIs(self.endpoint.transport, None)
-        self.assertEqual(len(self.flushLoggedErrors(FakeDisconnectedError)), 1)
+        self.assertEqual(len(self.flushLoggedErrors(FakeDisconnectedError)), 0)
 
     def test_disconnect_connection_cancellation(self):
         """
@@ -290,7 +290,7 @@ class ClientTestCase(TXJasonTestCase):
         self.assertIsNot(self.endpoint.transport, None)
         self.factory.disconnect()
         self.assertIs(self.endpoint.transport, None)
-        self.assertEqual(len(self.flushLoggedErrors(FakeDisconnectedError)), 1)
+        self.assertEqual(len(self.flushLoggedErrors(FakeDisconnectedError)), 0)
         self.failureResultOf(d, defer.CancelledError)
 
     def test_connect(self):
