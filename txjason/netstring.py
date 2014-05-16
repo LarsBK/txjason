@@ -48,6 +48,9 @@ class JSONRPCServerProtocol(NetstringReceiver):
         if result is not None:
             self.sendString(result)
 
+    def connectionLost(self, reason="unknown"):
+        log.msg("client disconnected", reason.type)
+
 
 class JSONRPCClientFactory(protocol.BaseClientFactory):
     def __init__(self, endpoint, timeout=5, reactor=None):
