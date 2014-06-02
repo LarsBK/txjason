@@ -106,13 +106,7 @@ class JSONRPCClientFactory(protocol.BaseClientFactory):
             d.errback(reason)
         self._proto = None
         self.client.cancelRequests()
-        o = self.disconnecting
         self.disconnecting = False
-        if o:
-            return None
-        else:
-            return reason
-
 
     def clientConnectionFailed(self, connector, reason):
         self.connected = False
