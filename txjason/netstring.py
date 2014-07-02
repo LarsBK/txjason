@@ -41,7 +41,7 @@ class JSONRPCServerProtocol(NetstringReceiver):
     """
     def __init__(self, service):
         self.service = service
-        self.MAX_LENGTH = 1000000
+        self.MAX_LENGTH = 5000000
 
     @defer.inlineCallbacks
     def stringReceived(self, string):
