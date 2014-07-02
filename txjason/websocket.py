@@ -25,7 +25,6 @@ class JSONRPCServerProtocolWS(WebSocketServerProtocol):
 		if isBinary:
 			self.transport.loseConnection()
 		result = yield self.service.call(payload)
-		log.msg("ResultWS", result)
 		if result is not None:
 			self.sendMessage(result)
 
