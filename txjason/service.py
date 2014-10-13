@@ -97,13 +97,17 @@ class JSONRPCService(object):
     The JSONRPCService class is a JSON-RPC
     """
 
-    def __init__(self, timeout=None, reactor=reactor):
+    def __init__(self, timeout=None, reactor=reactor,
+			encoder=None):
         self.method_data = {}
         self.serve_exception = None
         self.out_of_service_deferred = None
         self.pending = set()
         self.timeout = timeout
         self.reactor = reactor
+        if encoder is None:
+            encoder = json.JSONEncoder
+        self.encoder = encoder
 
     def add(self, f, name=None, types=None, required=None):
         """
@@ -172,7 +176,7 @@ class JSONRPCService(object):
         if result is None:
             defer.returnValue(None)
         else:
-            defer.returnValue(json.dumps(result))
+            defer.returnValue(json.dumps(result, cls=self.encoder))
 
     @defer.inlineCallbacks
     def call_py(self, jsondata):

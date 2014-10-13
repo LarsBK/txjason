@@ -4,8 +4,8 @@ from twisted.python import log
 
 
 class BaseServerFactory(protocol.ServerFactory):
-    def __init__(self, seperator='.', timeout=None):
-        self.service = service.JSONRPCService(timeout)
+    def __init__(self, seperator='.', timeout=None, encoder=None):
+        self.service = service.JSONRPCService(timeout, encoder=encoder)
         self.seperator = seperator
 
     def buildProtocol(self, addr):
